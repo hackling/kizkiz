@@ -114,7 +114,7 @@ class ZikProxy(object):
         self._s_eq_presets = []
         self._s_eq_preset_id = None
         self._s_eq_enabled = False
-        self._s_specific_mode = None
+        self._s_specific_mode = False
 
         for service in device.services():
             if service.getServiceName() == ZikProxy.ZIK_SERVICE_NAME:
@@ -292,7 +292,8 @@ class ZikProxy(object):
                 # Handles system software version updates.
                 self._s_version = n['software']['@version']
             elif path == self.ZIK_AUDIO_SPECIFIC_MODE_GET:
-                # No idea what this actually does!
+                # The so called "Lou Reed" mode.
+                print(packet_body)
                 enabled = n['audio']['specific_mode']['@enabled']
                 self._s_specific_mode = enabled == 'true'
             elif path == self.ZIK_EQ_PRESETS_GET:
@@ -385,8 +386,26 @@ class ZikProxy(object):
         self._request('SET', self.ZIK_AUDIO_NOISE_SET, value=value)
 
     @property
-    def s_specific_mode(self):
+    def s_lou_reed_mode(self):
+        """
+        The state of the parrot zik's "Lou Reed Mode" feature.
+        The value can be toggled by setting this to `True` or `False`.
+
+        .. note::
+
+            The Lou Reed mode will be automatically deactivated if the EQ
+            is used.
+        """
         return self._s_specific_mode
+
+    @s_lou_reed_mode.setter
+    def s_lou_reed_mode(self, value):
+        assert(isinstance(value, bool))
+        # Disable the EQ which is required by the Lou Reed mode or we'll
+        # get invalid state warnings.
+        self.s_eq_enabled = False
+        self._s_specific_mode = True
+        self._request('SET', self.ZIK_AUDIO_SPECIFIC_MODE_SET, value=value)
 
     @property
     def s_eq_presets(self):

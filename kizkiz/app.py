@@ -33,6 +33,10 @@ class KizKizApp(rumps.App):
                 'Noise Cancellation',
                 callback=self.on_noise_cancellation
             ),
+            rumps.MenuItem(
+                'Lou Reed Mode',
+                callback=self.on_lou_reed_mode
+            ),
             ('EQ', [
                 rumps.MenuItem(p[1], callback=partial(self.on_eq, p[1], p[0]))
                 for p in zik.s_eq_presets
@@ -53,7 +57,8 @@ class KizKizApp(rumps.App):
         # Update some menu states, since unfortunately the
         # current version of rumps doesn't let you set it in the
         # constructor.
-        self.menu['Noise Cancellation'].state = self.zik.s_noise_cancellation
+        self.menu['Noise Cancellation'].state = zik.s_noise_cancellation
+        self.menu['Lou Reed Mode'].state = zik.s_lou_reed_mode
 
         for eq_title, eq_item in self.menu['EQ'].items():
             if not eq_title:
@@ -67,10 +72,6 @@ class KizKizApp(rumps.App):
 
     def on_quit(self, _):
         rumps.quit_application()
-
-    def on_head_detection(self, sender):
-        self.zik.set_head_detect_enabled(not sender.state)
-        sender.state = not sender.state
 
     def on_noise_cancellation(self, sender):
         self.zik.s_noise_cancellation = not sender.state
@@ -87,6 +88,10 @@ class KizKizApp(rumps.App):
 
         # Rebuild the EQ menu
         self.build_menu()
+
+    def on_lou_reed_mode(self, sender):
+        self.zik.s_lou_reed_mode = not sender.state
+        sender.state = not sender.state
 
     def status_update(self, zik):
         self.build_menu()
